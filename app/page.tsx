@@ -15,6 +15,7 @@ interface HealthStatus {
 export default function Home() {
   const { t, locale, setLocale } = useT();
   const [showManage, setShowManage] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
   const [resetVersion, setResetVersion] = useState(0);
   const [isResetting, setIsResetting] = useState(false);
   const [health, setHealth] = useState<HealthStatus | null>(null);
@@ -29,8 +30,9 @@ export default function Home() {
   const showWarning = health && !health.ok;
 
   const handleReset = async () => {
-    if (isResetting || !window.confirm(t("ui.header.resetConfirm"))) return;
+    if (isResetting) return;
 
+    setShowResetModal(false);
     setIsResetting(true);
     try {
       const key = "after-sales-conversation-id";
@@ -103,7 +105,7 @@ export default function Home() {
             lang={locale}
           />
           <button
-            onClick={handleReset}
+            onClick={() => setShowResetModal(true)}
             disabled={isResetting}
             className="text-[11px] px-2.5 py-1 rounded-md border border-red-200 text-red-600 font-medium hover:bg-red-50 transition-colors disabled:opacity-50"
             title={t("ui.header.resetConfirm")}
@@ -149,6 +151,69 @@ export default function Home() {
           </aside>
         )}
       </div>
+
+      {showResetModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm"
+          onClick={() => setShowResetModal(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reset-modal-title"
+            aria-describedby="reset-modal-description"
+            className="w-full max-w-md overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl"
+            onClick={event => event.stopPropagation()}
+          >
+            <div className="h-1.5 bg-gradient-to-r from-red-500 via-rose-500 to-orange-400" />
+            <div className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600 ring-1 ring-red-100">
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3.75m0 3.75h.008M10.29 3.86 2.82 17.1A1.9 1.9 0 0 0 4.47 20h15.06a1.9 1.9 0 0 0 1.65-2.9L13.71 3.86a1.96 1.96 0 0 0-3.42 0Z" />
+                  </svg>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h2 id="reset-modal-title" className="text-base font-semibold text-gray-900">
+                    {t("ui.header.reset")}
+                  </h2>
+                  <p id="reset-modal-description" className="mt-2 text-sm leading-relaxed text-gray-500">
+                    {t("ui.header.resetConfirm")}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  aria-label={t("ui.manage.form.cancel")}
+                  onClick={() => setShowResetModal(false)}
+                  className="-mr-1 -mt-1 rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                >
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m6 6 12 12M18 6 6 18" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowResetModal(false)}
+                  className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"
+                >
+                  {t("ui.manage.form.cancel")}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  disabled={isResetting}
+                  className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {t("ui.header.reset")}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
