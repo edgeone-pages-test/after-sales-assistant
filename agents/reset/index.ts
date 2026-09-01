@@ -1,3 +1,5 @@
+import type { AgentContext } from '@edgeone/types';
+import type { BaseStore } from '@langchain/langgraph';
 /**
  * Reset all application-owned data for the after-sales assistant.
  *
@@ -51,7 +53,7 @@ async function clearConversations(store: any): Promise<number> {
   return deleted;
 }
 
-export async function onRequest(context: any) {
+export async function onRequest(context: AgentContext) {
   const store = context.store ?? null;
   if (!store) {
     return jsonResponse({
@@ -61,7 +63,7 @@ export async function onRequest(context: any) {
   }
 
   try {
-    const kv = store.langgraphStore;
+    const kv = store.langgraphStore as BaseStore;
     const conversations = await clearConversations(store);
     const workflowRecords = await clearNamespace(kv, WORKFLOW_NAMESPACE);
     const documents = await clearNamespace(kv, DOCUMENT_NAMESPACE);

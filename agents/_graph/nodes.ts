@@ -1,3 +1,5 @@
+import type { AgentContext } from '@edgeone/types';
+import type { BaseStore } from '@langchain/langgraph';
 /**
  * Graph nodes — each node is a function (state) => partial state update.
  * All user-facing strings are routed through agents/_i18n.ts (state.locale).
@@ -56,9 +58,9 @@ async function streamAnswer(
 const ORDERS_NAMESPACE = ["aftersales", "orders"];
 const ORDERS_MANIFEST_NAMESPACE = ["aftersales", "orders_manifest"];
 
-async function getAllOrders(context: any): Promise<Order[]> {
+async function getAllOrders(context: AgentContext): Promise<Order[]> {
   try {
-    const kv = context?.store?.langgraphStore;
+    const kv = context?.store?.langgraphStore as BaseStore | undefined;
     if (!kv) return [];
     const idx = await kv.get(ORDERS_MANIFEST_NAMESPACE, "all").catch(() => null);
     const ids: string[] = idx?.value?.ids || [];
@@ -74,9 +76,9 @@ async function getAllOrders(context: any): Promise<Order[]> {
   return [];
 }
 
-async function getOrderById(context: any, orderId: string): Promise<Order | null> {
+async function getOrderById(context: AgentContext, orderId: string): Promise<Order | null> {
   try {
-    const kv = context?.store?.langgraphStore;
+    const kv = context?.store?.langgraphStore as BaseStore | undefined;
     if (!kv) return null;
     const item = await kv.get(ORDERS_NAMESPACE, orderId);
     return (item?.value as Order) ?? null;
@@ -92,7 +94,7 @@ function filterOrderSummaries(summaries: Awaited<ReturnType<typeof getAllSummari
   return summaries.filter(s => ORDER_FILENAME_RE.test(s.filename));
 }
 
-async function lookupBlobOrderDoc(context: any, orderId: string): Promise<{
+async function lookupBlobOrderDoc(context: AgentContext, orderId: string): Promise<{
   content: string;
   docId: string;
   summary: string;
@@ -180,7 +182,7 @@ export async function intentRecognition(state: AfterSalesStateType, env: AgentEn
 
 // ─── FAQ Search (Knowledge Base) ───
 
-export async function faqSearch(state: AfterSalesStateType, env: AgentEnv, context: any, runtime?: StreamRuntime) {
+export async function faqSearch(state: AfterSalesStateType, env: AgentEnv, context: AgentContext, runtime?: StreamRuntime) {
   const locale = (state.locale || "zh") as Locale;
   const summaries = await getAllSummaries(context.store);
   logger.log(`Knowledge base has ${summaries.length} documents`);
@@ -266,7 +268,7 @@ ${contextText}${languageDirective(locale)}`),
 
 // ─── Lookup Order ───
 
-export async function lookupOrder(state: AfterSalesStateType, context: any) {
+export async function lookupOrder(state: AfterSalesStateType, context: AgentContext) {
   const locale = (state.locale || "zh") as Locale;
   const sep = locale === "en" ? ", " : "、";
   const orderId = state.orderId;
@@ -341,7 +343,7 @@ export async function lookupOrder(state: AfterSalesStateType, context: any) {
 
 // ─── Request Refund ───
 
-export async function requestRefund(state: AfterSalesStateType, context: any) {
+export async function requestRefund(state: AfterSalesStateType, context: AgentContext) {
   const locale = (state.locale || "zh") as Locale;
   const sep = locale === "en" ? ", " : "、";
   const ineligibleNote = (label: string) => locale === "en" ? ` *(${label}, not eligible for refund)*` : ` *(${label}，暂不可退款)*`;
@@ -489,7 +491,7 @@ export async function requestRefund(state: AfterSalesStateType, context: any) {
 
 // ─── Request Exchange ───
 
-export async function requestExchange(state: AfterSalesStateType, context: any) {
+export async function requestExchange(state: AfterSalesStateType, context: AgentContext) {
   const locale = (state.locale || "zh") as Locale;
   const sep = locale === "en" ? ", " : "、";
   const ineligibleNote = (label: string) => locale === "en" ? ` *(${label}, not eligible for exchange)*` : ` *(${label}，暂不可换货)*`;

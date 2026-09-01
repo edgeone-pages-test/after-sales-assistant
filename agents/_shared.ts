@@ -1,3 +1,5 @@
+import type { AgentContext } from '@edgeone/types';
+import type { BaseStore } from '@langchain/langgraph';
 /**
  * Shared utilities for after-sales assistant agent.
  */
@@ -117,25 +119,25 @@ export interface Order {
 
 const ORDER_NAMESPACE = ["aftersales", "orders"];
 
-export async function getOrder(context: any, orderId: string): Promise<Order | null> {
+export async function getOrder(context: AgentContext, orderId: string): Promise<Order | null> {
   try {
-    const item = await context.store.langgraphStore.get(ORDER_NAMESPACE, orderId);
+    const item = await (context.store.langgraphStore as BaseStore).get(ORDER_NAMESPACE, orderId);
     if (item?.value) return item.value as Order;
   } catch {}
   return null;
 }
 
-export async function saveOrder(context: any, order: Order): Promise<void> {
+export async function saveOrder(context: AgentContext, order: Order): Promise<void> {
   try {
-    await context.store.langgraphStore.put(ORDER_NAMESPACE, order.orderId, { ...order });
+    await (context.store.langgraphStore as BaseStore).put(ORDER_NAMESPACE, order.orderId, { ...order });
   } catch (e) {
     createLogger("store").error("Failed to save order:", e);
   }
 }
 
-export async function listUserOrders(context: any, userId: string): Promise<Order[]> {
+export async function listUserOrders(context: AgentContext, userId: string): Promise<Order[]> {
   try {
-    const results = await context.store.langgraphStore.search(ORDER_NAMESPACE, {
+    const results = await (context.store.langgraphStore as BaseStore).search(ORDER_NAMESPACE, {
       filter: { userId: { $eq: userId } },
       limit: 50,
     });

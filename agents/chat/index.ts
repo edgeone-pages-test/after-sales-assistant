@@ -1,3 +1,5 @@
+import type { AgentContext } from '@edgeone/types';
+import type { BaseStore } from '@langchain/langgraph';
 /**
  * Main Chat Agent — After-Sales Assistant
  *
@@ -26,17 +28,17 @@ const STEP_KEYS: Record<string, string> = {
 
 const STATE_NAMESPACE = ["aftersales", "workflow"];
 
-async function loadState(context: any, threadId: string): Promise<Partial<AfterSalesStateType> | null> {
+async function loadState(context: AgentContext, threadId: string): Promise<Partial<AfterSalesStateType> | null> {
   try {
-    const item = await context.store.langgraphStore.get(STATE_NAMESPACE, threadId);
+    const item = await (context.store.langgraphStore as BaseStore).get(STATE_NAMESPACE, threadId);
     if (item?.value) return item.value as Partial<AfterSalesStateType>;
   } catch {}
   return null;
 }
 
-async function saveState(context: any, threadId: string, state: Partial<AfterSalesStateType>): Promise<void> {
+async function saveState(context: AgentContext, threadId: string, state: Partial<AfterSalesStateType>): Promise<void> {
   try {
-    await context.store.langgraphStore.put(STATE_NAMESPACE, threadId, { ...state });
+    await (context.store.langgraphStore as BaseStore).put(STATE_NAMESPACE, threadId, { ...state });
   } catch (e) {
     logger.error("Failed to save state:", e);
   }
@@ -55,7 +57,7 @@ async function* streamStaticText(text: string, node: string, signal?: AbortSigna
 
 async function* streamAfterSales(
   userMessage: string,
-  context: any,
+  context: AgentContext,
   pendingAction: { intent: string } | null,
   locale: Locale,
   signal?: AbortSignal
@@ -190,9 +192,9 @@ async function* streamAfterSales(
 
 // ─── HTTP Handler ───
 
-export async function onRequest(context: any) {
+export async function onRequest(context: AgentContext) {
   const { request } = context;
-  const body = request?.body ?? {};
+  const body = (request?.body ?? {}) as Record<string, any>;
   const { message, pendingAction } = body;
   const locale = getLocale(body);
   if (!message) {

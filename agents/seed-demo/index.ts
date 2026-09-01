@@ -1,3 +1,5 @@
+import type { AgentContext } from '@edgeone/types';
+import type { BaseStore } from '@langchain/langgraph';
 /**
  * Seed Demo Agent — imports demo documents into the knowledge base.
  *
@@ -37,7 +39,7 @@ async function generateSummary(title: string, content: string, locale: Locale, e
 }
 
 async function* streamSeedDemo(store: any, locale: Locale, env: AgentEnv): AsyncGenerator<string> {
-  const kv = store.langgraphStore;
+  const kv = store.langgraphStore as BaseStore;
   const DEMO_DOCS = getDemoDocs(locale);
   const DEMO_ORDERS = getDemoOrders(locale);
 
@@ -129,7 +131,7 @@ async function* streamSeedDemo(store: any, locale: Locale, env: AgentEnv): Async
   yield "data: [DONE]\n\n";
 }
 
-export async function onRequest(context: any) {
+export async function onRequest(context: AgentContext) {
   const env = context.env ?? {};
   if (!env.AI_GATEWAY_API_KEY || !env.AI_GATEWAY_BASE_URL) {
     return new Response(JSON.stringify({ error: "AI Gateway not configured" }), {
@@ -146,7 +148,7 @@ export async function onRequest(context: any) {
     }), { status: 503, headers: { "Content-Type": "application/json" } });
   }
 
-  const body = context.request?.body ?? {};
+  const body = (context.request?.body ?? {}) as Record<string, any>;
   const locale = getLocale(body);
   logger.log(`Seeding demo documents (locale=${locale})...`);
   const signal = context.request?.signal as AbortSignal | undefined;

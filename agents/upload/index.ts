@@ -1,3 +1,4 @@
+import type { AgentContext } from '@edgeone/types';
 /**
  * Document Upload Agent — handles document upload for the after-sales knowledge base.
  *
@@ -81,10 +82,10 @@ Output STRICT JSON only (no other text):
   };
 }
 
-export async function onRequest(context: any) {
+export async function onRequest(context: AgentContext) {
   const { request } = context;
   const env = context.env ?? {};
-  const body = request?.body ?? {};
+  const body = (request?.body ?? {}) as Record<string, any>;
   const { file, filename, category, text, title } = body;
   const locale = getLocale(body);
 

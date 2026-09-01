@@ -1,3 +1,5 @@
+import type { AgentContext } from '@edgeone/types';
+import type { BaseStore } from '@langchain/langgraph';
 /**
  * Order storage utilities.
  * Orders are seeded via seed-demo (not auto-seeded as mock data).
@@ -43,9 +45,9 @@ async function addToManifest(kv: any, orderId: string): Promise<void> {
 // ─── Public API ───
 
 /** Get a single order by ID */
-export async function getOrder(context: any, orderId: string): Promise<Order | null> {
+export async function getOrder(context: AgentContext, orderId: string): Promise<Order | null> {
   try {
-    const kv = context.store.langgraphStore;
+    const kv = context.store.langgraphStore as BaseStore;
     const item = await kv.get(ORDERS_NAMESPACE, orderId);
     return (item?.value as Order) ?? null;
   } catch {}
@@ -53,8 +55,8 @@ export async function getOrder(context: any, orderId: string): Promise<Order | n
 }
 
 /** Save/update an order (also updates the manifest) */
-export async function saveOrder(context: any, order: Order): Promise<void> {
-  const kv = context.store.langgraphStore;
+export async function saveOrder(context: AgentContext, order: Order): Promise<void> {
+  const kv = context.store.langgraphStore as BaseStore;
   await kv.put(ORDERS_NAMESPACE, order.orderId, { ...order });
   await addToManifest(kv, order.orderId);
 }
@@ -62,7 +64,7 @@ export async function saveOrder(context: any, order: Order): Promise<void> {
 /** List all orders for a user — manifest-based, no search needed */
 export async function listUserOrders(store: any, userId = "default"): Promise<Order[]> {
   try {
-    const kv = store.langgraphStore;
+    const kv = store.langgraphStore as BaseStore;
     const ids = await readManifest(kv);
     if (ids.length === 0) return [];
     const orders = await Promise.all(

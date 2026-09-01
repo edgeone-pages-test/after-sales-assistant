@@ -1,3 +1,5 @@
+import type { AgentContext } from '@edgeone/types';
+import type { BaseStore } from '@langchain/langgraph';
 /**
  * Document Management — list, get, delete, edit documents in the knowledge base.
  *
@@ -113,10 +115,10 @@ async function regenerateSummary(
   return { summary: text.slice(0, 400), keywords: [] };
 }
 
-export async function onRequest(context: any) {
+export async function onRequest(context: AgentContext) {
   const { request } = context;
   const env = context.env ?? {};
-  const body = request?.body ?? {};
+  const body = (request?.body ?? {}) as Record<string, any>;
   const { action, category, docId, content, title } = body;
 
   // Agent endpoint → use context.store (full AgentMemory with langgraphStore).
@@ -227,7 +229,7 @@ export async function onRequest(context: any) {
 
       // ─── List Orders ───
       case "list_orders": {
-        const kv = store.langgraphStore;
+        const kv = store.langgraphStore as BaseStore;
         const ORDERS_NS = ["aftersales", "orders"];
         const MANIFEST_NS = ["aftersales", "orders_manifest"];
         const idx = await kv.get(MANIFEST_NS, "all").catch(() => null);

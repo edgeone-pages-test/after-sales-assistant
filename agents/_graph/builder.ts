@@ -1,3 +1,4 @@
+import type { AgentContext } from '@edgeone/types';
 /**
  * Build the after-sales LangGraph state machine.
  *
@@ -19,7 +20,7 @@ import {
 
 type AgentEnv = Record<string, string | undefined>;
 
-export function buildAfterSalesGraph(context: any, env: AgentEnv) {
+export function buildAfterSalesGraph(context: AgentContext, env: AgentEnv) {
   const graph = new StateGraph(AfterSalesState)
     .addNode("intent_recognition", (s, config) => intentRecognition(s, env, config))
     .addNode("faq_search", (s, config) => faqSearch(s, env, context, config))

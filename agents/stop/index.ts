@@ -1,3 +1,4 @@
+import type { AgentContext } from '@edgeone/types';
 /**
  * Stop active run — abort the running generation for this conversation.
  *
@@ -5,10 +6,10 @@
  * context) before invoking an agent endpoint. The frontend sends the same ID in
  * the body as well so the handler remains explicit about which run to stop.
  */
-export async function onRequest(context: any) {
+export async function onRequest(context: AgentContext) {
   // Body wins when present; runtime-injected context.conversation_id acts as
   // a fallback after the runtime resolves the required conversation header.
-  const body = (context.request?.body ?? {}) as Record<string, unknown>;
+  const body = ((context.request?.body ?? {}) as Record<string, any>) as Record<string, unknown>;
   const conversationId =
     (body.conversation_id as string | undefined) ??
     (body.conversationId as string | undefined) ??
